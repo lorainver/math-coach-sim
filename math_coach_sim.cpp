@@ -1,4 +1,5 @@
 #include<bits/stdc++.h>
+#include "ui_renderer.h"
 using namespace std;
 long unsigned int tim = 1000;
 int opt, zhong_lei;
@@ -247,36 +248,12 @@ void out(int x) {
 		cout << "???";
 		return;
 	}
-	if (x == 1) {
-		wchar_t lw1[] = L"甲子";
-		wprintf(L"%ls", lw1);
-	} else if (x == 2) {
-		wchar_t lw2[] = L"乙丑";
-		wprintf(L"%ls", lw2);
-	} else if (x == 3) {
-		wchar_t lw3[] = L"丙寅";
-		wprintf(L"%ls", lw3);
-	} else {
-		wchar_t lw4[] = L"丁卯";
-		wprintf(L"%ls", lw4);
-	}
-	cout << ":";
-	wchar_t lw5[] = L"代数 ";
-	wchar_t lw6[] = L"几何 ";
-	wchar_t lw7[] = L"数论 ";
-	wchar_t lw8[] = L"组合 ";
-	wprintf(L"%ls", lw5);
-	out_pj(dai[x]);
-	cout << ",";
-	wprintf(L"%ls", lw6);
-	out_pj(ji[x]);
-	cout << ",";
-	wprintf(L"%ls", lw7);
-	out_pj(shu[x]);
-	cout << ",";
-	wprintf(L"%ls", lw8);
-	out_pj(zu[x]);
-	cout << ".";
+	wstring name;
+	if (x == 1) name = L"甲子";
+	else if (x == 2) name = L"乙丑";
+	else if (x == 3) name = L"丙寅";
+	else name = L"丁卯";
+	ui::drawStudentCard(x, name, dai[x], ji[x], shu[x], zu[x]);
 }
 
 // ===== 做题逻辑（数据驱动） =====
@@ -285,36 +262,26 @@ int do_question(int cat_idx) {
 	if (diff_idx < 0 || diff_idx > 2) diff_idx = 0;
 	Question &q = questions[cat_idx][diff_idx];
 
-	wprintf(L"%ls", q.intro.c_str());
-	cout << "\n";
-	_sleep(tim);
-	wprintf(L"%ls", q.question.c_str());
-	cout << "\n";
+	ui::drawQuestionBox(q.intro, q.question, hard);
 
 	if (q.answer_type == "int_pair") {
 		int a, b;
 		safe_cin_int_pair(a, b, L"输入无效，请输入两个用空格分隔的整数（两根从小到大）：");
 		if (a == q.answer_int_a && b == q.answer_int_b) {
-			wchar_t ww3[] = L"恭喜你，答案正确";
-			wprintf(L"%ls", ww3);
-			cout << "\n";
+			ui::showAnswerFeedback(true, q.reward);
 			return q.reward;
 		} else {
-			wchar_t ww4[] = L"答案错误！！！";
-			wprintf(L"%ls", ww4);
+			ui::showAnswerFeedback(false, 0);
 			return 0;
 		}
 	} else if (q.answer_type == "int") {
 		int a;
 		safe_cin_int(a, L"输入无效，请输入一个整数数字：");
 		if (a == q.answer_int) {
-			wchar_t ww3[] = L"恭喜你，答案正确";
-			wprintf(L"%ls", ww3);
-			cout << "\n";
+			ui::showAnswerFeedback(true, q.reward);
 			return q.reward;
 		} else {
-			wchar_t ww4[] = L"答案错误！！！";
-			wprintf(L"%ls", ww4);
+			ui::showAnswerFeedback(false, 0);
 			return 0;
 		}
 	} else if (q.answer_type == "string_multi") {
@@ -322,19 +289,15 @@ int do_question(int cat_idx) {
 		cin >> a;
 		for (size_t i = 0; i < q.answer_strings.size(); i++) {
 			if (a == q.answer_strings[i]) {
-				wchar_t ww3[] = L"恭喜你，答案正确";
-				wprintf(L"%ls", ww3);
-				cout << "\n";
+				ui::showAnswerFeedback(true, q.reward);
 				return q.reward;
 			}
 		}
-		wchar_t ww4[] = L"答案错误！！！";
-		wprintf(L"%ls", ww4);
+		ui::showAnswerFeedback(false, 0);
 		return 0;
 	}
 
-	wchar_t ww4[] = L"答案错误！！！";
-	wprintf(L"%ls", ww4);
+	ui::showAnswerFeedback(false, 0);
 	return 0;
 }
 
@@ -359,75 +322,47 @@ void safe_cin_int_pair(int &var1, int &var2, const wchar_t *prompt) {
 int main() {
 	srand(time(0));
 
+	// 初始化控制台并开启 UTF-8 & ANSI 颜色
+	ui::initConsole();
+
 	// 加载题库
 	loadQuestions("questions.json");
 
-	cout << "                                              MO";
-	setlocale(LC_ALL, "");
-	wchar_t ws[] = L"教练模拟器";
-	wprintf(L"%ls", ws);
-	cout << "\n";
-	_sleep(tim / 4);
-	wchar_t wws[] = L"如果您想开始游戏，请输入1，否则请输入2。";
-	wprintf(L"%ls", wws);
-	cout << "\n";
+	// 绘制 Banner
+	ui::drawBanner();
+	ui::sleepMs(tim / 4);
+
+	ui::drawTextBox(L"系统选项", L"如果您想开始游戏，请输入 1，否则请输入 2。", "info");
 	safe_cin_int(opt, L"输入无效，请重新输入（1开始，2退出）：");
 	if (opt == 2) {
-		system("CLS");
-		wchar_t s[] = L"再见！";
-		wprintf(L"%ls", s);
-		cout << "\n";
-		_sleep(tim);
-		system("CLS");
+		ui::clearScreen();
+		ui::drawTextBox(L"系统消息", L"再见！", "info");
+		ui::sleepMs(tim);
+		ui::clearScreen();
 		return 0;
 	} else {
-		system("CLS");
-		wchar_t w[] = L"                                        开始游戏!";
-		wprintf(L"%ls", w);
-		cout << "\n";
-		_sleep(tim);
-		wchar_t ww[] = L"背景描述：时光荏苒，白云苍狗。不知不觉中，你教的学生已到了高一。而你，作为xx中学的数学竞赛主教练，将指导学生参加比赛，并争取获得成绩。";
-		wprintf(L"%ls", ww);
-		cout << "\n";
-		_sleep(tim * 3);
-		wchar_t w1[] = L"游戏介绍：这是一款模拟类游戏，玩家需根据状况做出选择，并尽量达成游戏目标";
-		wprintf(L"%ls", w1);
-		cout << "\n";
-		_sleep(tim * 2);
-		wchar_t www[] = L"游戏目标:协助学生AKIMO。你准备好了吗？好了请输入\"A\"（注意是大写的）";
-		wprintf(L"%ls", www);
-		cout << "\n";
-		_sleep(tim);
+		ui::clearScreen();
+		ui::drawTextBox(L"系统消息", L"开始游戏！", "success");
+		ui::sleepMs(tim);
+		ui::drawTextBox(L"背景描述", L"时光荏苒，白云苍狗。不知不觉中，你教的学生已到了高一。而你，作为 xx 中学的数学竞赛主教练，将指导学生参加比赛，并争取获得成绩。", "info");
+		ui::sleepMs(tim * 3);
+		ui::drawTextBox(L"游戏介绍", L"这是一款模拟类游戏，玩家需根据状况做出选择，并尽量达成游戏目标。", "info");
+		ui::sleepMs(tim * 2);
+		ui::drawTextBox(L"游戏目标", L"协助学生 AKIMO。你准备好了吗？好了请输入\"A\"（注意是大写的）", "warn");
+		ui::sleepMs(tim);
 		while (cin >> op) {
 			if (op == 'A') {
 				break;
 			}
 		}
 	}
-	system("CLS");
-	wchar_t w2[] = L"那么，下面请选择学生。（注：为了简便，我们设置了代数，几何，数论，组合这四个能力指标，并有优，良，中，差四个评级）";
-	wprintf(L"%ls", w2);
-	cout << "\n";
-	_sleep(tim);
-	wchar_t w3[] = L"a.甲子：代数：差，几何：中，数论：中，组合：良";
-	wchar_t w4[] = L"b.乙丑：代数：中，几何：差，数论：中，组合：差";
-	wchar_t w5[] = L"c.丙寅：代数：差，几何：差，数论：中，组合：差";
-	wchar_t w6[] = L"d.丁卯：代数：差，几何：良，数论：差，组合：差";
-	wchar_t w7[] = L"你可以选择2个学生，输入他们的番号，一行一个，并在输入结束后输入\"A\"";
-	wprintf(L"%ls", w3);
-	cout << "\n";
-	_sleep(tim);
-	wprintf(L"%ls", w4);
-	cout << "\n";
-	_sleep(tim);
-	wprintf(L"%ls", w5);
-	cout << "\n";
-	_sleep(tim);
-	wprintf(L"%ls", w6);
-	cout << "\n";
-	_sleep(tim);
-	wprintf(L"%ls", w7);
-	cout << "\n";
+	ui::clearScreen();
+	ui::drawTextBox(L"规则提示", L"下面请选择学生。（注：代数，几何，数论，组合这四个能力指标有差、中、良、优四个评级）\n你可以选择 2 个学生，输入他们的番号（a-d），一行一个，并在输入结束后输入 \"A\"", "info");
+	ui::sleepMs(tim);
+
+	// 使用更美观的花名册界面
+	ui::drawStudentList();
+
 	while (cin >> ca) {
 		if (ca == 'A') break;
 		int idx = int(ca) - 'a' + 1;
@@ -441,37 +376,29 @@ int main() {
 			break;
 		}
 	}
-	wchar_t w8[] = L"好的，下面正式开始游戏";
-	wprintf(L"%ls", w8);
-	cout << "\n";
-	_sleep(tim);
-	system("CLS");
+	ui::drawTextBox(L"系统消息", L"好的，学生选择完成，下面正式开始游戏！", "success");
+	ui::sleepMs(tim);
+	ui::clearScreen();
 	while (dai[choose_a] < MAX_RATING || ji[choose_a] < MAX_RATING || shu[choose_a] < MAX_RATING || zu[choose_a] < MAX_RATING) {
-		wchar_t w9[] = L"(这是一个循环，当且仅当你的学生的能力都为\"优\"时才退出)\n你发现你的学生有些指标较弱，便想找一道题来提升他们的能力。但是，你需要做出来才能服众。你可以选择代数，几何，数论，组合四个板块（编号1，2，3，4）中一个（输入一行1个数，为题目类型, 但难度随机）";
-		wprintf(L"%ls", w9);
-		cout << "\n";
-		_sleep(tim);
+		ui::drawTextBox(L"当前任务提示", L"你发现你的学生有些指标较弱，便想找一道题来提升他们的能力。但是，你需要自己先做出来才能服众。\n请输入题目板块编号 [1:代数, 2:几何, 3:数论, 4:组合] (难度会随机决定)：", "info");
+		ui::sleepMs(tim);
 		safe_cin_int(zhong_lei, L"输入无效，请输入1-4的数字：");
 		if (zhong_lei < 1 || zhong_lei > 4) {
-			wchar_t err[] = L"无效的板块编号，请输入1-4！";
-			wprintf(L"%ls", err);
-			cout << "\n";
-			_sleep(tim);
-			system("CLS");
+			ui::drawTextBox(L"输入错误", L"无效的板块编号，请输入 1-4 之间的数字！", "error");
+			ui::sleepMs(tim);
+			ui::clearScreen();
 			continue;
 		}
-		system("CLS");
-		wchar_t w10[] = L"下面请做题吧！";
-		wprintf(L"%ls", w10);
-		cout << "\n";
-		_sleep(tim);
-		system("CLS");
+		ui::clearScreen();
+		ui::drawTextBox(L"系统消息", L"题目加载中，下面请开始做题吧！", "info");
+		ui::sleepMs(tim);
+		ui::clearScreen();
 		hard = (rand() % 3) + 1;
 
 		int cat_idx = zhong_lei - 1; // 0=代数 1=几何 2=数论 3=组合
 		return_zhi = do_question(cat_idx);
-		_sleep(tim);
-		system("CLS");
+		ui::sleepMs(tim);
+		ui::clearScreen();
 
 		int *rating_arr;
 		if (cat_idx == 0) rating_arr = dai;
@@ -484,22 +411,18 @@ int main() {
 		clamp_rating(rating_arr[choose_a]);
 		clamp_rating(rating_arr[choose_b]);
 
-		wchar_t w00[] = L"现在，";
-		wprintf(L"%ls", w00);
-		cout << "\n";
-		_sleep(tim);
+		ui::drawTextBox(L"成绩更新", L"学生能力值更新完毕：", "success");
+		ui::sleepMs(tim / 2);
 		out(choose_a);
 		cout << "\n";
-		_sleep(tim);
+		ui::sleepMs(tim / 2);
 		out(choose_b);
 		cout << "\n";
-		_sleep(tim * 4);
-		system("CLS");
+		ui::sleepMs(tim * 4);
+		ui::clearScreen();
 	}
-	system("CLS");
-	wchar_t w11[] = L"恭喜你达成游戏目标：AKIMO\n游戏结束！！！！！！！！！！！！！！！！！！！！！";
-	wprintf(L"%ls", w11);
-	cout << "\n";
-	_sleep(tim);
+	ui::clearScreen();
+	ui::showVictoryScreen();
+	ui::sleepMs(tim * 2);
 	return 0;
 }
