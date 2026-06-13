@@ -77,6 +77,16 @@ namespace ui {
 #endif
     }
 
+    // ================================================================
+    // drawTextBox — 绘制带边框的文本对话框
+    //   title : 对话框标题（如 "系统消息"）
+    //   text  : 正文内容
+    //   type  : 类型 ("info" / "warn" / "success" / "error")，控制图标与颜色
+    //
+    // 注意：emoji 图标（✅❌📢 等）需要终端字体支持（推荐 Windows Terminal
+    // + Cascadia Code）。已注释掉图标行以兼容更多终端环境；如需恢复，
+    // 取消 %ls icon 那一行即可。
+    // ================================================================
     void drawTextBox(const wstring &title, const wstring &text, const string &type) {
         wstring themeColor = COLOR_WHITE;
         wstring icon = L"📢";
@@ -95,8 +105,14 @@ namespace ui {
             icon = L"❌";
         }
 
-        wprintf(L"%ls", themeColor);
-        wprintf(L"┌─── %ls %ls ────────────────────────────────────────────────\n", icon.c_str(), title.c_str());
+        // [临时] 关闭主题色前缀，避免 ANSI 转义码在某些终端下干扰框线渲染
+        // wprintf(L"%ls", themeColor);
+        //
+        // [临时] 去掉 emoji 图标，因非 WT 终端（cmd / 旧 PowerShell）的默认
+        // 字体缺少 emoji 字形，显示为 ? 或方块，破坏框线对齐
+        wprintf(L"┌───  %ls  ────────────────────────────────────────────────\n",  title.c_str());
+        // 原始带图标版本（UTF-8 + WT 终端可用）：
+        // wprintf(L"┌─── %ls %ls ────────────────────────────────────────────────\n", icon.c_str(), title.c_str());
         wprintf(L"│ %ls\n", text.c_str());
         wprintf(L"└─────────────────────────────────────────────────────────────\n");
         wprintf(L"%ls", COLOR_RESET);
