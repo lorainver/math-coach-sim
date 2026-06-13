@@ -7,6 +7,10 @@ char op, ca;
 int return_zhi = 0, choose_a = 0, choose_b = 0, hard = 1;
 const int MAX_RATING = 4;
 
+// ===== 函数前向声明 =====
+void safe_cin_int(int &var, const wchar_t *prompt);
+void safe_cin_int_pair(int &var1, int &var2, const wchar_t *prompt);
+
 // ===== 题库数据结构 =====
 struct Question {
 	wstring intro;        // 难度提示语
@@ -61,6 +65,42 @@ string wstringToUtf8(const wstring &w) {
 	return result;
 }
 
+wstring utf8ToWstring(const string &str) {
+	wstring result;
+	size_t i = 0;
+	while (i < str.size()) {
+		unsigned char c = str[i];
+		if (c < 0x80) {
+			result += (wchar_t)c;
+			i++;
+		} else if ((c & 0xE0) == 0xC0) {
+			if (i + 1 >= str.size()) break;
+			wchar_t wc = ((c & 0x1F) << 6) | (str[i + 1] & 0x3F);
+			result += wc;
+			i += 2;
+		} else if ((c & 0xF0) == 0xE0) {
+			if (i + 2 >= str.size()) break;
+			wchar_t wc = ((c & 0x0F) << 12) | ((str[i + 1] & 0x3F) << 6) | (str[i + 2] & 0x3F);
+			result += wc;
+			i += 3;
+		} else if ((c & 0xF8) == 0xF0) {
+			if (i + 3 >= str.size()) break;
+			unsigned int codepoint = ((c & 0x07) << 18) | ((str[i + 1] & 0x3F) << 12) | ((str[i + 2] & 0x3F) << 6) | (str[i + 3] & 0x3F);
+			if (sizeof(wchar_t) == 2) {
+				codepoint -= 0x10000;
+				result += (wchar_t)((codepoint >> 10) + 0xD800);
+				result += (wchar_t)((codepoint & 0x3FF) + 0xDC00);
+			} else {
+				result += (wchar_t)codepoint;
+			}
+			i += 4;
+		} else {
+			i++;
+		}
+	}
+	return result;
+}
+
 string readJsonStringUtf8(const wstring &json, size_t &pos) {
 	wstring w = readJsonStringValue(json, pos);
 	return wstringToUtf8(w);
@@ -80,17 +120,18 @@ int readJsonInt(const wstring &json, size_t &pos) {
 
 // 加载题库
 void loadQuestions(const string &filename) {
-	// 读取文件为 wstring
-	wifstream fin(filename);
+	// 读取文件为 UTF-8 string 并转换为 wstring，避免 locale 导致的中文乱码问题
+	ifstream fin(filename, ios::binary);
 	if (!fin.is_open()) {
 		wchar_t err[] = L"错误：无法打开题库文件 questions.json";
 		wprintf(L"%ls", err);
 		cout << "\n";
 		return;
 	}
-	fin.imbue(locale(""));
-	wstring json((istreambuf_iterator<wchar_t>(fin)), istreambuf_iterator<wchar_t>());
+	string json_utf8((istreambuf_iterator<char>(fin)), istreambuf_iterator<char>());
 	fin.close();
+
+	wstring json = utf8ToWstring(json_utf8);
 
 	size_t pos = 0;
 	while (pos < json.size()) {
@@ -252,7 +293,7 @@ int do_question(int cat_idx) {
 
 	if (q.answer_type == "int_pair") {
 		int a, b;
-		cin >> a >> b;
+		safe_cin_int_pair(a, b, L"输入无效，请输入两个用空格分隔的整数（两根从小到大）：");
 		if (a == q.answer_int_a && b == q.answer_int_b) {
 			wchar_t ww3[] = L"恭喜你，答案正确";
 			wprintf(L"%ls", ww3);
@@ -265,7 +306,7 @@ int do_question(int cat_idx) {
 		}
 	} else if (q.answer_type == "int") {
 		int a;
-		cin >> a;
+		safe_cin_int(a, L"输入无效，请输入一个整数数字：");
 		if (a == q.answer_int) {
 			wchar_t ww3[] = L"恭喜你，答案正确";
 			wprintf(L"%ls", ww3);
@@ -300,6 +341,14 @@ int do_question(int cat_idx) {
 // ===== 安全输入 =====
 void safe_cin_int(int &var, const wchar_t *prompt) {
 	while (!(cin >> var)) {
+		cin.clear();
+		cin.ignore(10000, '\n');
+		wprintf(L"%ls", prompt);
+	}
+}
+
+void safe_cin_int_pair(int &var1, int &var2, const wchar_t *prompt) {
+	while (!(cin >> var1 >> var2)) {
 		cin.clear();
 		cin.ignore(10000, '\n');
 		wprintf(L"%ls", prompt);
