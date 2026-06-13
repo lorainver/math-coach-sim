@@ -1,12 +1,14 @@
-#include<bits/stdc++.h>
+﻿#include<bits/stdc++.h>
 using namespace std;
 long unsigned int tim = 1000;
 int opt, zhong_lei;
 int dai[1000] = {0, 1, 2, 1, 1}, ji[1000] = {0, 2, 1, 1, 3}, shu[1000] = {0, 2, 2, 2, 1}, zu[1000] = {0, 3, 1, 1, 1};
-char op, c, ca;
-int return_zhi, choose_a, choose_b, hard;
+char op, ca;
+int return_zhi = 0, choose_a = 0, choose_b = 0, hard = 1;
+const int MAX_RATING = 4;
+
 void out_pj(int x) {
-	if (x == 1) {
+	if (x <= 1) {
 		wchar_t lw1[] = L"差";
 		wprintf(L"%ls", lw1);
 	} else if (x == 2) {
@@ -20,7 +22,16 @@ void out_pj(int x) {
 		wprintf(L"%ls", lw4);
 	}
 }
+
+void clamp_rating(int &v) {
+	if (v > MAX_RATING) v = MAX_RATING;
+}
+
 void out(int x) {
+	if (x <= 0 || x > 4) {
+		cout << "???";
+		return;
+	}
 	if (x == 1) {
 		wchar_t lw1[] = L"甲子";
 		wprintf(L"%ls", lw1);
@@ -52,6 +63,7 @@ void out(int x) {
 	out_pj(zu[x]);
 	cout << ".";
 }
+
 int ds() {
 	if (hard == 1) {
 		int a, b;
@@ -114,8 +126,9 @@ int ds() {
 			return 0;
 		}
 	}
-	return 2;
+	return 0;
 }
+
 int jh() {
 	if (hard == 1) {
 		int a;
@@ -178,7 +191,9 @@ int jh() {
 			return 0;
 		}
 	}
+	return 0;
 }
+
 int sl() {
 	if (hard == 1) {
 		int a;
@@ -241,7 +256,9 @@ int sl() {
 			return 0;
 		}
 	}
+	return 0;
 }
+
 int zh() {
 	if (hard == 1) {
 		int a;
@@ -269,7 +286,7 @@ int zh() {
 		wprintf(L"%ls", ww1);
 		cout << "\n";
 		_sleep(tim);
-		wchar_t ww2[] = L"（2024全国高联一试试题）若三个正整数a,b,c的位数之和为8，且组成a,b,c的8个数码能排列为2，0，2，4，0，9，0，8，则称(a,b,c)为“幸运数组”，例如（9，8，202400）为“幸运数组”，则满足10<a<b<c的幸运数组个数为？";
+		wchar_t ww2[] = L"（2024全国高联一试试题）若三个正整数a,b,c的位数之和为8，且组成a,b,c的8个数码能排列为2，0，2，4，0，9，0，8，则称(a,b,c)为「幸运数组」，例如（9，8，202400）为「幸运数组」，则满足10<a<b<c的幸运数组个数为？";
 		wprintf(L"%ls", ww2);
 		cout << "\n";
 		cin >> a;
@@ -304,7 +321,17 @@ int zh() {
 			return 0;
 		}
 	}
+	return 0;
 }
+
+void safe_cin_int(int &var, const wchar_t *prompt) {
+	while (!(cin >> var)) {
+		cin.clear();
+		cin.ignore(10000, '\n');
+		wprintf(L"%ls", prompt);
+	}
+}
+
 int main() {
 	srand(time(0));
 	cout << "                                              MO";
@@ -316,7 +343,7 @@ int main() {
 	wchar_t wws[] = L"如果您想开始游戏，请输入1，否则请输入2。";
 	wprintf(L"%ls", wws);
 	cout << "\n";
-	cin >> opt;
+	safe_cin_int(opt, L"输入无效，请重新输入（1开始，2退出）：");
 	if (opt == 2) {
 		system("CLS");
 		wchar_t s[] = L"再见！";
@@ -375,10 +402,13 @@ int main() {
 	cout << "\n";
 	while (cin >> ca) {
 		if (ca == 'A') break;
+		int idx = int(ca) - 'a' + 1;
+		if (idx < 1 || idx > 4) continue;
 		if (choose_a == 0) {
-			choose_a = int(ca) - 'a' + 1;
+			choose_a = idx;
 		} else if (choose_b == 0) {
-			choose_b = int(ca) - 'a' + 1;
+			if (idx == choose_a) continue;
+			choose_b = idx;
 		} else {
 			break;
 		}
@@ -388,43 +418,59 @@ int main() {
 	cout << "\n";
 	_sleep(tim);
 	system("CLS");
-	while (dai[choose_a] < 4 || ji[choose_a] < 4 || shu[choose_a] < 4 || zu[choose_a] < 4) {
+	while (dai[choose_a] < MAX_RATING || ji[choose_a] < MAX_RATING || shu[choose_a] < MAX_RATING || zu[choose_a] < MAX_RATING) {
 		wchar_t w9[] = L"(这是一个循环，当且仅当你的学生的能力都为\"优\"时才退出)\n你发现你的学生有些指标较弱，便想找一道题来提升他们的能力。但是，你需要做出来才能服众。你可以选择代数，几何，数论，组合四个板块（编号1，2，3，4）中一个（输入一行1个数，为题目类型, 但难度随机）";
 		wprintf(L"%ls", w9);
 		cout << "\n";
 		_sleep(tim);
-		cin >> zhong_lei;
+		safe_cin_int(zhong_lei, L"输入无效，请输入1-4的数字：");
+		if (zhong_lei < 1 || zhong_lei > 4) {
+			wchar_t err[] = L"无效的板块编号，请输入1-4！";
+			wprintf(L"%ls", err);
+			cout << "\n";
+			_sleep(tim);
+			system("CLS");
+			continue;
+		}
 		system("CLS");
 		wchar_t w10[] = L"下面请做题吧！";
 		wprintf(L"%ls", w10);
 		cout << "\n";
 		_sleep(tim);
 		system("CLS");
-		hard = rand() % 3 + 1;
+		hard = (rand() % 3) + 1;
 		if (zhong_lei == 1) {
 			return_zhi = ds();
 			_sleep(tim);
 			system("CLS");
 			dai[choose_a] += return_zhi;
 			dai[choose_b] += return_zhi;
+			clamp_rating(dai[choose_a]);
+			clamp_rating(dai[choose_b]);
 		} else if (zhong_lei == 2) {
 			return_zhi = jh();
 			_sleep(tim);
 			system("CLS");
 			ji[choose_a] += return_zhi;
 			ji[choose_b] += return_zhi;
+			clamp_rating(ji[choose_a]);
+			clamp_rating(ji[choose_b]);
 		} else if (zhong_lei == 3) {
 			return_zhi = sl();
 			_sleep(tim);
 			system("CLS");
 			shu[choose_a] += return_zhi;
 			shu[choose_b] += return_zhi;
+			clamp_rating(shu[choose_a]);
+			clamp_rating(shu[choose_b]);
 		} else {
 			return_zhi = zh();
 			_sleep(tim);
 			system("CLS");
 			zu[choose_a] += return_zhi;
 			zu[choose_b] += return_zhi;
+			clamp_rating(zu[choose_a]);
+			clamp_rating(zu[choose_b]);
 		}
 		wchar_t w00[] = L"现在，";
 		wprintf(L"%ls", w00);
