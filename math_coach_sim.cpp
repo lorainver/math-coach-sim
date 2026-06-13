@@ -324,6 +324,7 @@ int main() {
 
 	// 初始化控制台并开启 UTF-8 & ANSI 颜色
 	ui::initConsole();
+	ui::clearScreen();
 
 	// 加载题库
 	loadQuestions("questions.json");
