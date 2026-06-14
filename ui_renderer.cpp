@@ -1,4 +1,5 @@
 #include "ui_renderer.h"
+#include "animation.h"
 #include <iostream>
 #include <cwchar>
 #include <clocale>
@@ -212,21 +213,10 @@ namespace ui {
 
     void showAnswerFeedback(bool isCorrect, int reward) {
         if (isCorrect) {
-            wprintf(L"\n%ls", COLOR_GREEN);
-            wprintf(L"=============================================================\n");
-            wprintf(L"   🎉 恭喜你，回答正确！ \n");
-            if (reward > 0) {
-                wprintf(L"   💡 达成卓越解答！对应版块能力提升了 %d 级！\n", reward);
-            }
-            wprintf(L"=============================================================\n");
+            anim::successAnimation(reward);
         } else {
-            wprintf(L"\n%ls", COLOR_RED);
-            wprintf(L"=============================================================\n");
-            wprintf(L"   ❌ 答案错误！！！ \n");
-            wprintf(L"   💡 看来还需要继续钻研，加油！本次能力值未发生改变。\n");
-            wprintf(L"=============================================================\n");
+            anim::failureAnimation();
         }
-        wprintf(L"%ls", COLOR_RESET);
     }
 
     void showVictoryScreen() {
